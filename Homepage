@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cropguard - AI | Spot crop disease early</title>
+  <meta name="description" content="Cropguard - AI helps farmers spot crop diseases and pests early from a single leaf photo.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --leaf-deep: #1f4d2b;
+      --leaf: #3e8e41;
+      --leaf-soft: #dcebd3;
+      --cream: #f6f1e3;
+      --white: #ffffff;
+      --ink: #19291d;
+      --muted: #55634f;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: "Nunito Sans", "Segoe UI", Arial, sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      line-height: 1.6;
+      font-size: 1.05rem;
+    }
+
+    h1, h2, h3, .brand {
+      font-family: "Bricolage Grotesque", "Segoe UI", Arial, sans-serif;
+      line-height: 1.1;
+    }
+
+    a { color: inherit; }
+
+    :focus-visible {
+      outline: 3px solid var(--leaf);
+      outline-offset: 3px;
+      border-radius: 6px;
+    }
+
+    .wrap {
+      width: min(1100px, 100% - 2.5rem);
+      margin-inline: auto;
+    }
+
+    /* Header */
+    header {
+      background: var(--white);
+      border-bottom: 1px solid var(--leaf-soft);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.9rem 0;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 800;
+      font-size: 1.4rem;
+      color: var(--leaf-deep);
+      text-decoration: none;
+    }
+
+    .brand span { color: var(--leaf); }
+
+    .nav ul {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+      flex-wrap: wrap;
+    }
+
+    .nav ul a {
+      text-decoration: none;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .nav ul a:hover { color: var(--leaf-deep); }
+
+    /* Buttons */
+    .btn {
+      display: inline-block;
+      padding: 0.8rem 1.5rem;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+      border: 2px solid var(--leaf-deep);
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .btn-solid {
+      background: var(--leaf-deep);
+      color: var(--white);
+    }
+
+    .btn-solid:hover { background: var(--leaf); border-color: var(--leaf); }
+
+    .btn-line {
+      background: transparent;
+      color: var(--leaf-deep);
+    }
+
+    .btn-line:hover { background: var(--leaf-deep); color: var(--white); }
+
+    /* Hero */
+    .hero {
+      padding: 4.5rem 0 4rem;
+    }
+
+    .hero .wrap {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 3rem;
+      align-items: center;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.4rem, 5.5vw, 4rem);
+      font-weight: 800;
+      color: var(--leaf-deep);
+      margin-bottom: 1.2rem;
+    }
+
+    .hero p {
+      max-width: 34rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.9rem;
+      flex-wrap: wrap;
+    }
+
+    /* Leaf scan visual */
+    .scan {
+      background: var(--white);
+      border-radius: 28px;
+      padding: 1.2rem;
+      border: 1px solid var(--leaf-soft);
+    }
+
+    .scan-frame {
+      position: relative;
+      background: var(--leaf-soft);
+      border-radius: 18px;
+      overflow: hidden;
+      aspect-ratio: 1 / 1;
+    }
+
+    .scan-frame svg { width: 100%; height: 100%; display: block; }
+
+    .scan-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 3px;
+      background: var(--leaf);
+      box-shadow: 0 0 14px 4px rgba(62, 142, 65, 0.45);
+      animation: sweep 3.2s ease-in-out 1 forwards;
+    }
+
+    @keyframes sweep {
+      0% { top: 0; opacity: 1; }
+      90% { top: 100%; opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    .scan-result {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 0.4rem 0.3rem;
+    }
+
+    .scan-result strong {
+      font-family: "Bricolage Grotesque", "Segoe UI", Arial, sans-serif;
+      font-size: 1.15rem;
+      color: var(--leaf-deep);
+      display: block;
+    }
+
+    .scan-result small { color: var(--muted); }
+
+    .match {
+      font-family: "Bricolage Grotesque", "Segoe UI", Arial, sans-serif;
+      font-weight: 800;
+      font-size: 1.6rem;
+      color: var(--leaf);
+    }
+
+    /* What it does */
+    .what {
+      background: var(--white);
+      padding: 4rem 0;
+    }
+
+    .what h2, .cta h2 {
+      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+      color: var(--leaf-deep);
+      margin-bottom: 2rem;
+      max-width: 30rem;
+    }
+
+    .what-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2.5rem;
+    }
+
+    .what-grid h3 {
+      font-size: 1.3rem;
+      color: var(--leaf-deep);
+      margin-bottom: 0.5rem;
+    }
+
+    .what-grid p { color: var(--muted); margin-bottom: 1rem; }
+
+    .what-grid a {
+      font-weight: 600;
+      color: var(--leaf);
+    }
+
+    /* Call to action */
+    .cta {
+      padding: 4.5rem 0;
+    }
+
+    .cta-box {
+      background: var(--leaf-deep);
+      color: var(--white);
+      border-radius: 28px;
+      padding: 3rem;
+    }
+
+    .cta-box h2 { color: var(--white); margin-bottom: 1.5rem; }
+
+    .cta-box .btn-solid {
+      background: var(--cream);
+      color: var(--leaf-deep);
+      border-color: var(--cream);
+    }
+
+    .cta-box .btn-solid:hover { background: var(--white); border-color: var(--white); }
+
+    .cta-box .btn-line {
+      color: var(--white);
+      border-color: var(--white);
+    }
+
+    .cta-box .btn-line:hover { background: var(--white); color: var(--leaf-deep); }
+
+    /* Footer */
+    footer {
+      background: var(--white);
+      border-top: 1px solid var(--leaf-soft);
+      padding: 1.8rem 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    footer .wrap {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    footer a { text-decoration: none; margin-left: 1.2rem; }
+    footer a:hover { color: var(--leaf-deep); }
+
+    /* Mobile */
+    @media (max-width: 800px) {
+      .hero .wrap { grid-template-columns: 1fr; }
+      .what-grid { grid-template-columns: 1fr; }
+      .cta-box { padding: 2rem 1.5rem; }
+      footer a { margin: 0 1.2rem 0 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .scan-line { animation: none; opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="wrap nav">
+      <a class="brand" href="index.html">
+        <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 3C8 8 5 14 5 19c0 5 4.5 9 11 9s11-4 11-9c0-5-3-11-11-16z" fill="#3e8e41"/>
+          <path d="M16 9v17M16 15l-5-3M16 20l5-3" stroke="#f6f1e3" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+        </svg>
+        Cropguard<span> - AI</span>
+      </a>
+      <nav aria-label="Main">
+        <ul>
+          <li><a href="how-it-works.html">How it works</a></li>
+          <li><a href="scan.html">Scan a leaf</a></li>
+          <li><a href="about.html">About us</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
+      <a class="btn btn-solid" href="login.html">Log in</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div>
+          <h1>Catch crop disease before it spreads.</h1>
+          <p>Take a photo of a leaf and Cropguard - AI tells you what is wrong and what to do about it, in seconds. Fewer lost plants, less spraying, a better harvest.</p>
+          <div class="actions">
+            <a class="btn btn-solid" href="scan.html">Scan a leaf</a>
+            <a class="btn btn-line" href="how-it-works.html">See how it works</a>
+          </div>
+        </div>
+
+        <div class="scan" role="img" aria-label="Example scan of a leaf showing a detected disease with a 94 percent match">
+          <div class="scan-frame">
+            <svg viewBox="0 0 400 400" aria-hidden="true">
+              <path d="M200 40C110 90 70 170 70 230c0 70 55 120 130 120s130-50 130-120c0-60-40-140-130-190z" fill="#3e8e41"/>
+              <path d="M200 70v270M200 160l-62-34M200 220l-70-38M200 280l-52-26M200 160l62-34M200 220l70-38M200 280l52-26" stroke="#dcebd3" stroke-width="5" stroke-linecap="round" fill="none"/>
+              <circle cx="255" cy="250" r="20" fill="#8a6a2f"/>
+              <circle cx="145" cy="215" r="13" fill="#8a6a2f"/>
+              <circle cx="228" cy="300" r="10" fill="#8a6a2f"/>
+              <rect x="215" y="215" width="80" height="70" rx="8" fill="none" stroke="#f6f1e3" stroke-width="4" stroke-dasharray="10 6"/>
+            </svg>
+            <div class="scan-line"></div>
+          </div>
+          <div class="scan-result">
+            <div>
+              <strong>Leaf spot detected</strong>
+              <small>Remove affected leaves and let the field dry</small>
+            </div>
+            <div class="match">94%</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="what">
+      <div class="wrap">
+        <h2>Built for the way farmers actually work</h2>
+        <div class="what-grid">
+          <div>
+            <h3>Find problems early</h3>
+            <p>Upload a photo from your phone and get a diagnosis for common diseases and pests.</p>
+            <a href="scan.html">Scan a leaf</a>
+          </div>
+          <div>
+            <h3>Know what to do next</h3>
+            <p>Every result comes with simple treatment steps you can follow the same day.</p>
+            <a href="how-it-works.html">Read how it works</a>
+          </div>
+          <div>
+            <h3>Made with farmers</h3>
+            <p>Learn about the team behind Cropguard - AI and the crops we support.</p>
+            <a href="about.html">Meet the team</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="wrap">
+        <div class="cta-box">
+          <h2>Ready to check your first crop?</h2>
+          <div class="actions">
+            <a class="btn btn-solid" href="scan.html">Scan a leaf</a>
+            <a class="btn btn-line" href="contact.html">Talk to us</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>&copy; 2026 Cropguard - AI</span>
+      <span>
+        <a href="how-it-works.html">How it works</a>
+        <a href="about.html">About us</a>
+        <a href="contact.html">Contact</a>
+      </span>
+    </div>
+  </footer>
+
+</body>
+</html>
